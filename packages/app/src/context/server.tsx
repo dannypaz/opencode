@@ -179,7 +179,9 @@ export function resolveServerList(input: {
 }
 
 export namespace ServerConnection {
-  type Base = { displayName?: string; label?: string }
+  // cloudSessionId is set on Http connections created via "dynamic cloud mode" (see
+  // utils/cloud-session.ts) so removal can also tear down the backing MicroVM.
+  type Base = { displayName?: string; label?: string; cloudSessionId?: string }
 
   export type HttpBase = {
     url: string
