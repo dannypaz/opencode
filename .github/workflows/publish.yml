@@ -392,12 +392,6 @@ jobs:
           name: opencode-desktop-${{ matrix.settings.target }}
           path: packages/desktop/dist/*
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: needs.version.outputs.release
-        with:
-          name: latest-yml-${{ matrix.settings.target }}
-          path: packages/desktop/dist/latest*.yml
-
   publish:
     needs:
       - version
@@ -448,12 +442,6 @@ jobs:
         with:
           name: opencode-preview-cli
           path: packages/cli/dist
-
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.version.outputs.release
-        with:
-          pattern: latest-yml-*
-          path: /tmp/latest-yml
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: needs.version.outputs.release
@@ -509,6 +497,3 @@ jobs:
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
           GH_REPO: ${{ needs.version.outputs.repo }}
           NPM_CONFIG_PROVENANCE: false
-          LATEST_YML_DIR: /tmp/latest-yml
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}

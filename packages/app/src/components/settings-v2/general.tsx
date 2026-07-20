@@ -1,6 +1,5 @@
 import { Component, Show, createMemo, createResource, onMount } from "solid-js"
 import { createMediaQuery } from "@solid-primitives/media"
-import { ButtonV2 } from "@opencode-ai/ui/v2/button-v2"
 import { SelectV2 } from "@opencode-ai/ui/v2/select-v2"
 import { Switch } from "@opencode-ai/ui/v2/switch-v2"
 import { TextInputV2 } from "@opencode-ai/ui/v2/text-input-v2"
@@ -11,7 +10,6 @@ import { usePermission } from "@/context/permission"
 import { usePlatform } from "@/context/platform"
 import { useServerSync } from "@/context/server-sync"
 import { useServerSDK } from "@/context/server-sdk"
-import { useUpdaterAction } from "../updater-action"
 import {
   monoDefault,
   monoFontFamily,
@@ -93,8 +91,6 @@ export const SettingsGeneralV2: Component<{
   const serverSync = useServerSync()
   const serverSdk = useServerSDK()
   const mobile = createMediaQuery("(max-width: 767px)")
-
-  const updater = useUpdaterAction()
 
   const dir = createMemo(() => {
     if (!props.sessionID) return undefined
@@ -650,15 +646,6 @@ export const SettingsGeneralV2: Component<{
               onChange={(checked) => settings.general.setReleaseNotes(checked)}
             />
           </div>
-        </SettingsRowV2>
-
-        <SettingsRowV2
-          title={language.t("settings.updates.row.check.title")}
-          description={language.t("settings.updates.row.check.description")}
-        >
-          <ButtonV2 size="normal" variant="neutral" disabled={!updater.action().run} onClick={updater.run}>
-            {language.t(updater.action().label)}
-          </ButtonV2>
         </SettingsRowV2>
       </SettingsListV2>
     </div>

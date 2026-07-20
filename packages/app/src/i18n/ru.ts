@@ -517,12 +517,8 @@ export const dict = {
   "toast.context.noLineSelection.title": "Нет выделения строк",
   "toast.context.noLineSelection.description": "Сначала выберите диапазон строк во вкладке файла.",
 
-
   "toast.session.listFailed.title": "Не удалось загрузить сессии для {{project}}",
 
-  "toast.update.title": "Доступно обновление",
-  "toast.update.description": "Новая версия OpenCode ({{version}}) доступна для установки.",
-  "toast.update.action.installRestart": "Установить и перезапустить",
   "toast.update.action.notYet": "Пока нет",
 
   "error.page.title": "Что-то пошло не так",
@@ -533,9 +529,6 @@ export const dict = {
   "error.page.action.report": "Сообщить об ошибке",
   "error.page.action.reported": "Об ошибке сообщено",
   "error.page.action.exportLogs": "Экспортировать журналы",
-  "error.page.action.checking": "Проверка...",
-  "error.page.action.checkUpdates": "Проверить обновления",
-  "error.page.action.updateTo": "Обновить до {{version}}",
   "error.page.report.prefix": "Пожалуйста, сообщите об этой ошибке команде OpenCode",
   "error.page.report.discord": "в Discord",
   "error.page.version": "Версия: {{version}}",
@@ -807,16 +800,6 @@ export const dict = {
   "settings.general.row.releaseNotes.title": "Примечания к выпуску",
   "settings.general.row.releaseNotes.description": 'Показывать всплывающие окна "Что нового" после обновлений',
 
-  "settings.updates.row.startup.title": "Проверять обновления при запуске",
-  "settings.updates.row.startup.description": "Автоматически проверять обновления при запуске OpenCode",
-  "settings.updates.row.check.title": "Проверить обновления",
-  "settings.updates.row.check.description": "Проверить обновления вручную и установить, если доступны",
-  "settings.updates.action.checkNow": "Проверить сейчас",
-  "settings.updates.action.checking": "Проверка...",
-  "settings.updates.action.downloading": "Загрузка...",
-  "settings.updates.action.installing": "Установка...",
-  "settings.updates.toast.latest.title": "У вас последняя версия",
-  "settings.updates.toast.latest.description": "Вы используете последнюю версию OpenCode.",
   "sound.option.none": "Нет",
   "sound.option.alert01": "Alert 01",
   "sound.option.alert02": "Alert 02",

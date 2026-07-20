@@ -4,7 +4,6 @@ import type { Accessor } from "solid-js"
 import type { DesktopMenuAction } from "../desktop-menu"
 import { ServerConnection } from "./server"
 import type { WslServersPlatform } from "../wsl/types"
-import type { UpdaterPlatform } from "../updater"
 
 type PickerPaths = string | string[] | null
 type OpenDirectoryPickerOptions = { title?: string; multiple?: boolean }
@@ -69,9 +68,6 @@ type PlatformBase = {
 
   /** Stable platform window identity for window-scoped persistence */
   windowID?: string
-
-  /** Application-global desktop updater */
-  updater?: UpdaterPlatform
 
   /** Fetch override */
   fetch?: typeof fetch
