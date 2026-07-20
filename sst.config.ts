@@ -32,6 +32,7 @@ export default $config({
     await import("./infra/app.js")
     const lake = stage.deployAws ? await import("./infra/lake.js") : undefined
     const stats = stage.deployAws ? await import("./infra/stats.js") : undefined
+    const cloudSessions = stage.deployAws ? await import("./infra/cloud-sessions.js") : undefined
     const { stat } = await import("./infra/console.js")
     await import("./infra/enterprise.js")
     if ($app.stage === "production" || $app.stage === "vimtor") {
@@ -45,6 +46,12 @@ export default $config({
         ? {
             LakeUrl: lake.lakeIngest.properties.url,
             LakeSecretSsm: lake.ingestSecretSsm.name,
+          }
+        : {}),
+      ...(cloudSessions
+        ? {
+            CloudSessionsProvisionUrl: cloudSessions.provisionFn.url,
+            CloudSessionsDeprovisionUrl: cloudSessions.deprovisionFn.url,
           }
         : {}),
       AwsStage: stage.awsStage,
