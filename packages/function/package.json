@@ -1,6 +1,6 @@
 {
   "name": "@opencode-ai/function",
-  "version": "1.18.3",
+  "version": "1.18.4",
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
   "type": "module",
@@ -14,6 +14,7 @@
   "dependencies": {
     "@octokit/auth-app": "8.0.1",
     "@octokit/rest": "catalog:",
+    "aws4fetch": "1.0.20",
     "hono": "catalog:",
     "jose": "6.0.11"
   }
