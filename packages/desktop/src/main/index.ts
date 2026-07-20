@@ -60,6 +60,7 @@ const APP_IDS: Record<string, string> = {
   prod: "ai.opencode.desktop",
 }
 const TEST_ONBOARDING = process.env.OPENCODE_TEST_ONBOARDING === "1"
+const NETLOG_ENABLED = process.env.OPENCODE_DEBUG_NETLOG === "1"
 const jsCallStackFeature = "DocumentPolicyIncludeJSCallStacksInCrashReports"
 
 let logger: ReturnType<typeof initLogging>
@@ -304,13 +305,15 @@ const main = Effect.gen(function* () {
   const updateTimer = setInterval(() => void updater.check(), 10 * 60 * 1000)
   updateTimer.unref()
   app.once("will-quit", () => clearInterval(updateTimer))
-  yield* Effect.promise(() => startNetLog()).pipe(
-    Effect.catch((error) =>
-      Effect.sync(() => {
-        logger.warn("failed to start net log", error)
-      }),
-    ),
-  )
+  if (NETLOG_ENABLED) {
+    yield* Effect.promise(() => startNetLog()).pipe(
+      Effect.catch((error) =>
+        Effect.sync(() => {
+          logger.warn("failed to start net log", error)
+        }),
+      ),
+    )
+  }
 
   const port = yield* Effect.gen(function* () {
     const fromEnv = process.env.OPENCODE_PORT
