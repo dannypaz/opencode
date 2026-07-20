@@ -19,6 +19,8 @@ import { normalizeServerUrl, ServerConnection, useServer } from "@/context/serve
 import { type ServerHealth, useCheckServerHealth } from "@/utils/server-health"
 import { useSettings } from "@/context/settings"
 import { useTabs } from "@/context/tabs"
+import { Persist, persisted } from "@/utils/persist"
+import { deprovisionCloudSession, provisionCloudSession } from "@/utils/cloud-session"
 
 const DEFAULT_USERNAME = "opencode"
 
@@ -199,6 +201,47 @@ export function useServerManagementController(options: { onSelect?: () => void; 
   const { defaultKey, canDefault, setDefault } = useDefaultServer()
   const { previewStatus } = useServerPreview()
   const checkServerHealth = useCheckServerHealth()
+
+  const [cloudConfig, setCloudConfig] = persisted(
+    Persist.global("cloud-config"),
+    createStore({ apiKey: "", provisionUrl: "", deprovisionUrl: "" }),
+  )
+  const cloudConfigured = createMemo(() => !!(cloudConfig.apiKey && cloudConfig.provisionUrl && cloudConfig.deprovisionUrl))
+  const [cloudState, setCloudState] = createStore({ busy: false, error: "", showConfig: false })
+
+  async function startCloudSession() {
+    if (cloudState.busy) return
+    if (!cloudConfigured()) {
+      setCloudState({ showConfig: true })
+      return
+    }
+    setCloudState({ busy: true, error: "" })
+    try {
+      const session = await provisionCloudSession(cloudConfig)
+      const conn: ServerConnection.Http = {
+        type: "http",
+        displayName: language.t("dialog.server.cloud.sessionName"),
+        cloudSessionId: session.id,
+        http: { url: session.url, username: session.username, password: session.password },
+      }
+      await select(conn, true)
+    } catch (err) {
+      setCloudState({ error: err instanceof Error ? err.message : String(err) })
+      showRequestError(language, err)
+    } finally {
+      setCloudState({ busy: false })
+    }
+  }
+
+  async function teardownCloudSession(conn: ServerConnection.Any) {
+    if (!conn.cloudSessionId || !cloudConfigured()) return
+    try {
+      await deprovisionCloudSession(cloudConfig, conn.cloudSessionId)
+    } catch (err) {
+      showRequestError(language, err)
+    }
+  }
+
   const [store, setStore] = createStore({
     addServer: {
       url: "",
@@ -512,11 +555,13 @@ export function useServerManagementController(options: { onSelect?: () => void; 
   async function handleRemove(key: ServerConnection.Key) {
     try {
       if (key.startsWith("wsl:")) await platform.wslServers?.removeServer(key)
+      const removed = items().find((x) => ServerConnection.key(x) === key)
       tabs.removeServer(key)
       server.remove(key)
       if ((await platform.getDefaultServer?.()) === key) {
         await setDefault(null)
       }
+      if (removed) void teardownCloudSession(removed)
     } catch (err) {
       showRequestError(language, err)
     }
@@ -549,6 +594,16 @@ export function useServerManagementController(options: { onSelect?: () => void; 
     handleFormNameChange: () => (isAddMode() ? handleAddNameChange : handleEditNameChange),
     handleFormUsernameChange: () => (isAddMode() ? handleAddUsernameChange : handleEditUsernameChange),
     handleFormPasswordChange: () => (isAddMode() ? handleAddPasswordChange : handleEditPasswordChange),
+    cloud: {
+      config: cloudConfig,
+      setConfig: setCloudConfig,
+      configured: cloudConfigured,
+      busy: () => cloudState.busy,
+      error: () => cloudState.error,
+      showConfig: () => cloudState.showConfig,
+      setShowConfig: (value: boolean) => setCloudState({ showConfig: value }),
+      start: startCloudSession,
+    },
   }
 }
 
@@ -648,7 +703,7 @@ export function ServerConnectionList(props: { controller: ReturnType<typeof useS
         }}
       </List>
 
-      <div class="shrink-0 pb-5">
+      <div class="shrink-0 pb-5 flex flex-col gap-2">
         <Button
           variant="secondary"
           icon="plus-small"
@@ -658,8 +713,68 @@ export function ServerConnectionList(props: { controller: ReturnType<typeof useS
         >
           {language.t("dialog.server.add.button")}
         </Button>
+        <CloudSection controller={props.controller} />
       </div>
     </div>
+  )
+}
+
+function CloudSection(props: { controller: ReturnType<typeof useServerManagementController> }) {
+  const language = useLanguage()
+  const cloud = props.controller.cloud
+
+  return (
+    <Show
+      when={cloud.showConfig() || !cloud.configured()}
+      fallback={
+        <Button
+          variant="secondary"
+          size="large"
+          disabled={cloud.busy()}
+          onClick={() => void cloud.start()}
+          class="py-1.5 pl-1.5 pr-3 flex items-center gap-1.5"
+        >
+          {cloud.busy() ? language.t("dialog.server.cloud.starting") : language.t("dialog.server.cloud.button")}
+        </Button>
+      }
+    >
+      <div class="bg-surface-base rounded-md p-5 flex flex-col gap-3">
+        <div class="text-14-medium text-text-strong">{language.t("dialog.server.cloud.configureTitle")}</div>
+        <TextField
+          type="password"
+          label={language.t("dialog.server.cloud.apiKey")}
+          value={cloud.config.apiKey}
+          onChange={(value: string) => cloud.setConfig("apiKey", value)}
+        />
+        <TextField
+          type="text"
+          label={language.t("dialog.server.cloud.provisionUrl")}
+          value={cloud.config.provisionUrl}
+          onChange={(value: string) => cloud.setConfig("provisionUrl", value)}
+        />
+        <TextField
+          type="text"
+          label={language.t("dialog.server.cloud.deprovisionUrl")}
+          value={cloud.config.deprovisionUrl}
+          onChange={(value: string) => cloud.setConfig("deprovisionUrl", value)}
+        />
+        <Show when={cloud.error()}>
+          <div class="text-text-on-critical-base text-13-regular">{cloud.error()}</div>
+        </Show>
+        <Button
+          variant="primary"
+          size="large"
+          disabled={!cloud.configured() || cloud.busy()}
+          onClick={() => {
+            cloud.setShowConfig(false)
+            void cloud.start()
+          }}
+          class="px-3 py-1.5"
+        >
+          {language.t("dialog.server.cloud.save")}
+        </Button>
+      </div>
+    </Show>
   )
 }
 

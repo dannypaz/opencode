@@ -25,10 +25,15 @@ const microvmPermissions = [
   },
 ]
 
+// CORS is open (desktop app has no fixed origin -- Electron renderers commonly send
+// "null"/a custom scheme as Origin) since the real access control is the bearer API key
+// checked inside each handler, not the browser-enforced CORS check.
+const corsFromAnyOrigin = { allowOrigins: ["*"], allowMethods: ["POST"], allowHeaders: ["authorization", "content-type"] }
+
 export const provisionFn = new sst.aws.Function("CloudSessionsProvision", {
   handler: "packages/function/src/aws/cloud-session-provision.handler",
   timeout: "30 seconds",
-  url: true,
+  url: { cors: corsFromAnyOrigin },
   link: [CLOUD_CONTROL_PLANE_API_KEY],
   permissions: microvmPermissions,
   environment: {
@@ -39,7 +44,7 @@ export const provisionFn = new sst.aws.Function("CloudSessionsProvision", {
 export const deprovisionFn = new sst.aws.Function("CloudSessionsDeprovision", {
   handler: "packages/function/src/aws/cloud-session-deprovision.handler",
   timeout: "10 seconds",
-  url: true,
+  url: { cors: corsFromAnyOrigin },
   link: [CLOUD_CONTROL_PLANE_API_KEY],
   permissions: microvmPermissions,
 })
