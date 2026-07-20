@@ -71,7 +71,6 @@ function isolatedEnv(home: string, configJson: string): Record<string, string> {
     OPENCODE_DISABLE_PROJECT_CONFIG: "1",
     OPENCODE_PURE: "1",
     OPENCODE_DISABLE_AUTOCOMPACT: "1",
-    OPENCODE_DISABLE_MODELS_FETCH: "1",
     OPENCODE_AUTH_CONTENT: "{}",
   }
 }

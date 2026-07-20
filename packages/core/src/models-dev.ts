@@ -1,21 +1,15 @@
 import path from "path"
-import { Context, Duration, Effect, Layer, Option, Schedule, Schema } from "effect"
-import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
+import { Context, Duration, Effect, Layer, Schema } from "effect"
 import { ModelsDev } from "@opencode-ai/schema/models-dev"
 import { Global } from "./global"
 import { Flag } from "./flag/flag"
-import { Flock } from "./util/flock"
 import { Hash } from "./util/hash"
 import { FSUtil } from "./fs-util"
-import { InstallationChannel, InstallationVersion } from "./installation/version"
 import { EventV2 } from "./event"
 import { makeGlobalNode } from "./effect/app-node"
-import { httpClient } from "./effect/app-node-platform"
 
 export const CatalogModelStatus = Schema.Literals(["alpha", "beta", "deprecated"])
 export type CatalogModelStatus = typeof CatalogModelStatus.Type
-
-const USER_AGENT = `opencode/${InstallationChannel}/${InstallationVersion}/${Flag.OPENCODE_CLIENT}`
 
 const CostTier = Schema.Struct({
   input: Schema.Finite,
@@ -141,39 +135,15 @@ const layer = Layer.effect(
   Effect.gen(function* () {
     const fs = yield* FSUtil.Service
     const events = yield* EventV2.Service
-    const http = HttpClient.filterStatusOk(
-      (yield* HttpClient.HttpClient).pipe(
-        HttpClient.retryTransient({
-          retryOn: "errors-and-responses",
-          times: 2,
-          schedule: Schedule.exponential(200).pipe(Schedule.jittered),
-        }),
-      ),
-    )
 
+    // OPENCODE_MODELS_URL no longer names a network source to fetch from, but it still
+    // selects which on-disk cache filename to look at, so a custom value keeps resolving
+    // to its own cache file instead of colliding with the default models.json.
     const source = Flag.OPENCODE_MODELS_URL || "https://models.dev"
     const filepath = path.join(
       Global.Path.cache,
       source === "https://models.dev" ? "models.json" : `models-${Hash.fast(source)}.json`,
     )
-    const ttl = Duration.minutes(5)
-    const lockKey = `models-dev:${filepath}`
-
-    const fresh = Effect.fnUntraced(function* () {
-      const stat = yield* fs.stat(filepath).pipe(Effect.catch(() => Effect.succeed(undefined)))
-      if (!stat) return false
-      const mtime = Option.getOrElse(stat.mtime, () => new Date(0)).getTime()
-      return Date.now() - mtime < Duration.toMillis(ttl)
-    })
-
-    const fetchApi = Effect.fn("ModelsDev.fetchApi")(function* () {
-      return yield* HttpClientRequest.get(`${source}/api.json`).pipe(
-        HttpClientRequest.setHeader("User-Agent", USER_AGENT),
-        http.execute,
-        Effect.flatMap((res) => res.text),
-        Effect.timeout("10 seconds"),
-      )
-    })
 
     const loadFromDisk = fs.readJson(Flag.OPENCODE_MODELS_PATH ?? filepath).pipe(
       Effect.catch((error) => {
@@ -193,68 +163,37 @@ const layer = Layer.effect(
       typeof OPENCODE_MODELS_DEV === "undefined" ? undefined : OPENCODE_MODELS_DEV,
     )
 
-    const fetchAndWrite = Effect.fn("ModelsDev.fetchAndWrite")(function* () {
-      const text = yield* fetchApi()
-      const tempfile = `${filepath}.${process.pid}.${Date.now()}.tmp`
-      yield* fs.writeWithDirs(tempfile, text).pipe(
-        Effect.andThen(fs.rename(tempfile, filepath)),
-        Effect.catch((error) =>
-          Effect.gen(function* () {
-            yield* fs.remove(tempfile, { force: true }).pipe(Effect.ignore)
-            return yield* Effect.fail(error)
-          }),
-        ),
-      )
-      return text
-    })
-
-    const populate = Effect.gen(function* () {
+    // Local-only: disk cache/override first, then the build-time-embedded snapshot,
+    // else an empty catalog. No network fetch — this repo never calls out at runtime.
+    const readLocal = Effect.gen(function* () {
       const fromDisk = yield* loadFromDisk
       if (fromDisk) return fromDisk
       const snapshot = yield* loadSnapshot
       if (snapshot) return snapshot
-      if (Flag.OPENCODE_DISABLE_MODELS_FETCH) return {}
-      // Flock is cross-process: concurrent opencode CLIs can race on this cache file.
-      const text = yield* Effect.scoped(
-        Effect.gen(function* () {
-          yield* Flock.effect(lockKey)
-          return yield* fetchAndWrite()
-        }),
-      )
-      return JSON.parse(text) as Record<string, Provider>
-    }).pipe(Effect.withSpan("ModelsDev.populate"), Effect.orDie)
+      return {}
+    })
+
+    const populate = readLocal.pipe(Effect.withSpan("ModelsDev.populate"), Effect.orDie)
 
     const [cachedGet, invalidate] = yield* Effect.cachedInvalidateWithTTL(populate, Duration.infinity)
 
     const get = (): Effect.Effect<Record<string, Provider>> => cachedGet
 
     const refresh = Effect.fn("ModelsDev.refresh")(function* (force = false) {
-      if (!force && (yield* fresh())) return
-      yield* Effect.scoped(
-        Effect.gen(function* () {
-          yield* Flock.effect(lockKey)
-          // Re-check under the lock: another process may have refreshed between
-          // our outer check and lock acquisition.
-          if (!force && (yield* fresh())) return
-          yield* fetchAndWrite()
-          yield* invalidate
-          yield* events.publish(Event.Refreshed, {})
-        }),
-      ).pipe(
-        Effect.tapCause((cause) => Effect.logError("Failed to fetch models.dev", { cause: cause })),
-        Effect.ignore,
-      )
+      const before = yield* cachedGet
+      const after = yield* readLocal
+      // force always re-publishes; otherwise only when the local sources actually changed
+      // (e.g. an admin dropped a new file at OPENCODE_MODELS_PATH or the on-disk cache path).
+      if (force || JSON.stringify(before) !== JSON.stringify(after)) {
+        yield* invalidate
+        yield* events.publish(Event.Refreshed, {})
+      }
     })
-
-    if (!Flag.OPENCODE_DISABLE_MODELS_FETCH && !process.argv.includes("--get-yargs-completions")) {
-      // Schedule.spaced runs the effect once, then waits between completions.
-      yield* Effect.forkScoped(refresh().pipe(Effect.repeat(Schedule.spaced("60 minutes")), Effect.ignore))
-    }
 
     return Service.of({ get, refresh })
   }),
 )
 
-export const node = makeGlobalNode({ service: Service, layer: layer, deps: [FSUtil.node, EventV2.node, httpClient] })
+export const node = makeGlobalNode({ service: Service, layer: layer, deps: [FSUtil.node, EventV2.node] })
 
 export * as ModelsDev from "./models-dev"

@@ -12,7 +12,6 @@ import { LLMClient } from "@opencode-ai/llm/route"
 import type { LLMClientService } from "@opencode-ai/llm/route"
 import { GitLabWorkflowLanguageModel } from "gitlab-ai-provider"
 import { ProviderTransform } from "@/provider/transform"
-import { Config } from "@/config/config"
 import type { Agent } from "@/agent/agent"
 import type { MessageV2 } from "./message-v2"
 import { Plugin } from "@/plugin"
@@ -24,8 +23,6 @@ import { SessionID } from "@/session/schema"
 import { Auth } from "@/auth"
 import { EffectBridge } from "@/effect/bridge"
 import { RuntimeFlags } from "@/effect/runtime-flags"
-import * as Option from "effect/Option"
-import * as OtelTracer from "@effect/opentelemetry/Tracer"
 import { LLMAISDK } from "./llm/ai-sdk"
 import { LLMNativeRuntime } from "./llm/native-runtime"
 import { LLMRequestPrep } from "./llm/request"
@@ -63,7 +60,6 @@ const live: Layer.Layer<
   Service,
   never,
   | Auth.Service
-  | Config.Service
   | Provider.Service
   | Plugin.Service
   | Permission.Service
@@ -74,7 +70,6 @@ const live: Layer.Layer<
   Service,
   Effect.gen(function* () {
     const auth = yield* Auth.Service
-    const config = yield* Config.Service
     const provider = yield* Provider.Service
     const plugin = yield* Plugin.Service
     const perm = yield* Permission.Service
@@ -92,10 +87,9 @@ const live: Layer.Layer<
         mode: input.agent.mode,
       })
 
-      const [language, cfg, item, info] = yield* Effect.all(
+      const [language, item, info] = yield* Effect.all(
         [
           provider.getLanguage(input.model),
-          config.get(),
           provider.getProvider(input.model.providerID),
           auth.get(input.model.providerID),
         ],
@@ -204,22 +198,6 @@ const live: Layer.Layer<
           }
         })
       }
-
-      const tracer = cfg.experimental?.openTelemetry
-        ? Option.getOrUndefined(yield* Effect.serviceOption(OtelTracer.OtelTracer))
-        : undefined
-      const telemetryTracer = tracer
-        ? new Proxy(tracer, {
-            get(target, prop, receiver) {
-              if (prop !== "startSpan") return Reflect.get(target, prop, receiver)
-              return (...args: Parameters<typeof target.startSpan>) => {
-                const span = target.startSpan(...args)
-                span.setAttribute("session.id", input.sessionID)
-                return span
-              }
-            },
-          })
-        : undefined
 
       // Runtime seam: native is an opt-in adapter over @opencode-ai/llm. It
       // either returns a ready LLMEvent stream or a concrete fallback reason.
@@ -341,15 +319,6 @@ const live: Layer.Layer<
               },
             ],
           }),
-          experimental_telemetry: {
-            isEnabled: cfg.experimental?.openTelemetry,
-            functionId: "session.llm",
-            tracer: telemetryTracer,
-            metadata: {
-              userId: cfg.username ?? "unknown",
-              sessionId: input.sessionID,
-            },
-          },
         }),
       }
     })
@@ -391,7 +360,6 @@ export const node = LayerNode.make({
   layer: live,
   deps: [
     Auth.node,
-    Config.node,
     Provider.node,
     Plugin.node,
     Permission.node,
