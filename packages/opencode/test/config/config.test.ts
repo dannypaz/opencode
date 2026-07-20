@@ -1191,15 +1191,15 @@ it.instance(
   Effect.gen(function* () {
     yield* writeManagedSettingsEffect({
       $schema: "https://opencode.ai/config.json",
-      autoupdate: false,
+      snapshot: false,
       disabled_providers: ["openai"],
     })
 
     const config = yield* Config.use.get()
-    expect(config.autoupdate).toBe(false)
+    expect(config.snapshot).toBe(false)
     expect(config.disabled_providers).toEqual(["openai"])
   }),
-  { config: { autoupdate: true, disabled_providers: [] } },
+  { config: { snapshot: true, disabled_providers: [] } },
 )
 
 it.instance("managed jsonc settings override managed json settings", () =>
@@ -1967,7 +1967,7 @@ test("parseManagedPlist parses server settings", async () => {
         JSON.stringify({
           $schema: "https://opencode.ai/config.json",
           server: { hostname: "127.0.0.1", mdns: false },
-          autoupdate: true,
+          snapshot: true,
         }),
       ),
       "test:mobileconfig",
@@ -1976,7 +1976,7 @@ test("parseManagedPlist parses server settings", async () => {
   )
   expect(config.server?.hostname).toBe("127.0.0.1")
   expect(config.server?.mdns).toBe(false)
-  expect(config.autoupdate).toBe(true)
+  expect(config.snapshot).toBe(true)
 })
 
 test("parseManagedPlist parses permission rules", async () => {
