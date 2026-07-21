@@ -345,7 +345,6 @@ opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 | <nobr><code>{"--continue"}</code></nobr> | `-c` | 继续上一个会话                                                      |
 | <nobr><code>{"--session"}</code></nobr>  | `-s` | 要继续的会话 ID                                                     |
 | <nobr><code>{"--fork"}</code></nobr>     |      | 继续时分叉会话（与 `--continue` 或 `--session` 配合使用）           |
-| <nobr><code>{"--share"}</code></nobr>    |      | 分享会话                                                            |
 | <nobr><code>{"--model"}</code></nobr>    | `-m` | 要使用的模型，格式为 provider/model                                 |
 | <nobr><code>{"--agent"}</code></nobr>    |      | 要使用的代理                                                        |
 | <nobr><code>{"--file"}</code></nobr>     | `-f` | 附加到消息的文件                                                    |
@@ -440,23 +439,6 @@ opencode export [sessionID]
 
 ---
 
-### import
-
-从 JSON 文件或 OpenCode 分享链接导入会话数据。
-
-```bash
-opencode import <file>
-```
-
-您可以从本地文件或 OpenCode 分享链接导入。
-
-```bash
-opencode import session.json
-opencode import https://opncd.ai/s/abc123
-```
-
----
-
 ### web
 
 启动带有 Web 界面的无界面 OpenCode 服务器。
@@ -517,34 +499,6 @@ opencode uninstall
 
 ---
 
-### upgrade
-
-将 OpenCode 更新到最新版本或指定版本。
-
-```bash
-opencode upgrade [target]
-```
-
-更新到最新版本。
-
-```bash
-opencode upgrade
-```
-
-更新到指定版本。
-
-```bash
-opencode upgrade v0.1.48
-```
-
-#### 标志
-
-| 标志                                   | 简写 | 描述                                       |
-| -------------------------------------- | ---- | ------------------------------------------ |
-| <nobr><code>{"--method"}</code></nobr> | `-m` | 使用的安装方式：curl、npm、pnpm、bun、brew |
-
----
-
 ## 全局标志
 
 OpenCode CLI 接受以下全局标志。
@@ -564,13 +518,11 @@ OpenCode 可以通过环境变量进行配置。
 
 | 变量                                  | 类型    | 描述                                    |
 | ------------------------------------- | ------- | --------------------------------------- |
-| `OPENCODE_AUTO_SHARE`                 | boolean | 自动分享会话                            |
 | `OPENCODE_GIT_BASH_PATH`              | string  | Windows 上 Git Bash 可执行文件的路径    |
 | `OPENCODE_CONFIG`                     | string  | 配置文件路径                            |
 | `OPENCODE_TUI_CONFIG`                 | string  | TUI 配置文件路径                        |
 | `OPENCODE_CONFIG_DIR`                 | string  | 配置目录路径                            |
 | `OPENCODE_CONFIG_CONTENT`             | string  | 内联 JSON 配置内容                      |
-| `OPENCODE_DISABLE_AUTOUPDATE`         | boolean | 禁用自动更新检查                        |
 | `OPENCODE_DISABLE_PRUNE`              | boolean | 禁用旧数据清理                          |
 | `OPENCODE_DISABLE_TERMINAL_TITLE`     | boolean | 禁用自动终端标题更新                    |
 | `OPENCODE_PERMISSION`                 | string  | 内联 JSON 权限配置                      |

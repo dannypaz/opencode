@@ -345,7 +345,6 @@ opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 | <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continuar la última sesión                                                                |
 | <nobr><code>{"--session"}</code></nobr>  | `-s`  | ID de sesión para continuar                                                               |
 | <nobr><code>{"--fork"}</code></nobr>     |       | Bifurcar la sesión al continuar (usar con `--continue` o `--session`)                     |
-| <nobr><code>{"--share"}</code></nobr>    |       | Comparte la sesión                                                                        |
 | <nobr><code>{"--model"}</code></nobr>    | `-m`  | Modelo a utilizar en forma de proveedor/modelo                                            |
 | <nobr><code>{"--agent"}</code></nobr>    |       | Agente a utilizar                                                                         |
 | <nobr><code>{"--file"}</code></nobr>     | `-f`  | Archivo(s) para adjuntar al mensaje                                                       |
@@ -440,23 +439,6 @@ Si no proporciona una ID de sesión, se le pedirá que seleccione entre las sesi
 
 ---
 
-### import
-
-Importe datos de sesión desde un archivo JSON o una URL compartida OpenCode.
-
-```bash
-opencode import <file>
-```
-
-Puede importar desde un archivo local o una URL compartida OpenCode.
-
-```bash
-opencode import session.json
-opencode import https://opncd.ai/s/abc123
-```
-
----
-
 ### web
 
 Inicie un servidor OpenCode sin cabeza con una interfaz web.
@@ -517,34 +499,6 @@ opencode uninstall
 
 ---
 
-### upgrade
-
-Actualiza opencode a la última versión o a una versión específica.
-
-```bash
-opencode upgrade [target]
-```
-
-Para actualizar a la última versión.
-
-```bash
-opencode upgrade
-```
-
-Para actualizar a una versión específica.
-
-```bash
-opencode upgrade v0.1.48
-```
-
-#### Opciones
-
-| Opción                                 | Corta | Descripción                                                         |
-| -------------------------------------- | ----- | ------------------------------------------------------------------- |
-| <nobr><code>{"--method"}</code></nobr> | `-m`  | El método de instalación que se utilizó; curl, npm, pnpm, bun, brew |
-
----
-
 ## Opciones globales
 
 La CLI de OpenCode toma las siguientes banderas globales.
@@ -564,12 +518,10 @@ OpenCode se puede configurar mediante variables de entorno.
 
 | Variable                              | Type     | Description                                                                     |
 | ------------------------------------- | -------- | ------------------------------------------------------------------------------- |
-| `OPENCODE_AUTO_SHARE`                 | booleano | Compartir sesiones automáticamente                                              |
 | `OPENCODE_GIT_BASH_PATH`              | cadena   | Ruta al ejecutable de Git Bash en Windows                                       |
 | `OPENCODE_CONFIG`                     | cadena   | Ruta al archivo de configuración                                                |
 | `OPENCODE_CONFIG_DIR`                 | cadena   | Ruta al directorio de configuración                                             |
 | `OPENCODE_CONFIG_CONTENT`             | cadena   | Contenido de configuración json en línea                                        |
-| `OPENCODE_DISABLE_AUTOUPDATE`         | booleano | Deshabilitar las comprobaciones automáticas de actualizaciones                  |
 | `OPENCODE_DISABLE_PRUNE`              | booleano | Deshabilitar la poda de datos antiguos                                          |
 | `OPENCODE_DISABLE_TERMINAL_TITLE`     | booleano | Deshabilitar las actualizaciones automáticas de títulos de terminal             |
 | `OPENCODE_PERMISSION`                 | cadena   | Configuración de permisos json incorporados                                     |

@@ -87,10 +87,6 @@ export const dict = {
   "command.session.compact.description": "Підсумувати сесію, щоб зменшити розмір контексту",
   "command.session.fork": "Відгалузити від повідомлення",
   "command.session.fork.description": "Створити нову сесію з попереднього повідомлення",
-  "command.session.share": "Поділитися сесією",
-  "command.session.share.description": "Поділитися цією сесією та скопіювати URL у буфер обміну",
-  "command.session.unshare": "Припинити поширення сесії",
-  "command.session.unshare.description": "Припинити поширення цієї сесії",
 
   "palette.search.placeholder": "Пошук файлів, команд і сесій",
   "palette.search.placeholder.home": "Пошук команд і сесій",
@@ -534,23 +530,9 @@ export const dict = {
   "toast.context.noLineSelection.title": "Не вибрано рядків",
   "toast.context.noLineSelection.description": "Спочатку виберіть діапазон рядків у вкладці файлу.",
 
-  "toast.session.share.copyFailed.title": "Не вдалося скопіювати URL у буфер обміну",
-  "toast.session.share.success.title": "Сесію опубліковано",
-  "toast.session.share.success.description": "Посилання скопійовано в буфер обміну!",
-  "toast.session.share.failed.title": "Не вдалося опублікувати сесію",
-  "toast.session.share.failed.description": "Під час публікації сесії сталася помилка",
-
-  "toast.session.unshare.success.title": "Поширення сесії припинено",
-  "toast.session.unshare.success.description": "Поширення сесії успішно припинено!",
-  "toast.session.unshare.failed.title": "Не вдалося припинити поширення сесії",
-  "toast.session.unshare.failed.description": "Під час припинення поширення сесії сталася помилка",
-
   "toast.session.listFailed.title": "Не вдалося завантажити сесії для {{project}}",
   "toast.project.reloadFailed.title": "Не вдалося перезавантажити {{project}}",
 
-  "toast.update.title": "Доступне оновлення",
-  "toast.update.description": "Нова версія OpenCode ({{version}}) тепер доступна для встановлення.",
-  "toast.update.action.installRestart": "Встановити та перезапустити",
   "toast.update.action.notYet": "Не зараз",
 
   "error.page.title": "Щось пішло не так",
@@ -561,9 +543,6 @@ export const dict = {
   "error.page.action.report": "Повідомити про помилку",
   "error.page.action.reported": "Помилку повідомлено",
   "error.page.action.exportLogs": "Експортувати журнали",
-  "error.page.action.checking": "Перевірка...",
-  "error.page.action.checkUpdates": "Перевірити оновлення",
-  "error.page.action.updateTo": "Оновити до {{version}}",
   "error.page.circular": "[Циклічне]",
   "error.page.report.prefix": "Будь ласка, повідомте про цю помилку команді OpenCode",
   "error.page.report.discord": "на Discord",
@@ -738,19 +717,7 @@ export const dict = {
   "status.popover.tab.plugins": "Плагіни",
   "status.popover.action.manageServers": "Керувати серверами",
 
-  "session.share.popover.title": "Опублікувати в інтернеті",
-  "session.share.popover.description.shared":
-    "Ця сесія є публічною в інтернеті. Вона доступна будь-кому за посиланням.",
-  "session.share.popover.description.unshared":
-    "Опублікуйте сесію публічно в інтернеті. Вона буде доступна будь-кому за посиланням.",
-  "session.share.action.share": "Поділитися",
-  "session.share.action.publish": "Опублікувати",
-  "session.share.action.publishing": "Публікація...",
-  "session.share.action.unpublish": "Скасувати публікацію",
-  "session.share.action.unpublishing": "Скасування публікації...",
-  "session.share.action.view": "Переглянути",
-  "session.share.copy.copied": "Скопійовано",
-  "session.share.copy.copyLink": "Копіювати посилання",
+  "common.copied": "Скопійовано",
 
   "lsp.tooltip.none": "Немає серверів LSP",
   "lsp.label.connected": "{{count}} LSP",
@@ -923,16 +890,6 @@ export const dict = {
   "settings.general.row.releaseNotes.title": "Нотатки до релізу",
   "settings.general.row.releaseNotes.description": 'Показувати спливаючі вікна "Що нового" після оновлень',
 
-  "settings.updates.row.startup.title": "Перевіряти оновлення під час запуску",
-  "settings.updates.row.startup.description": "Автоматично перевіряти наявність оновлень під час запуску OpenCode",
-  "settings.updates.row.check.title": "Перевірити оновлення",
-  "settings.updates.row.check.description": "Вручну перевірити наявність оновлень і встановити, якщо доступні",
-  "settings.updates.action.checkNow": "Перевірити зараз",
-  "settings.updates.action.checking": "Перевірка...",
-  "settings.updates.action.downloading": "Завантаження...",
-  "settings.updates.action.installing": "Встановлення...",
-  "settings.updates.toast.latest.title": "У вас актуальна версія",
-  "settings.updates.toast.latest.description": "Ви використовуєте останню версію OpenCode.",
   "sound.option.none": "Немає",
   "sound.option.alert01": "Alert 01",
   "sound.option.alert02": "Alert 02",

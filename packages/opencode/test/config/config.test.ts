@@ -688,19 +688,6 @@ it.instance("handles command configuration", () =>
   }),
 )
 
-it.instance("migrates autoshare to share field", () =>
-  Effect.gen(function* () {
-    const test = yield* TestInstance
-    yield* writeConfigEffect(test.directory, {
-      $schema: "https://opencode.ai/config.json",
-      autoshare: true,
-    })
-    const config = yield* Config.use.get()
-    expect(config.share).toBe("auto")
-    expect(config.autoshare).toBe(true)
-  }),
-)
-
 it.instance("migrates mode field to agent field", () =>
   Effect.gen(function* () {
     const test = yield* TestInstance
@@ -1188,15 +1175,15 @@ it.instance(
     yield* writeManagedSettingsEffect({
       $schema: "https://opencode.ai/config.json",
       model: "managed/model",
-      share: "disabled",
+      default_agent: "managed-agent",
     })
 
     const config = yield* Config.use.get()
     expect(config.model).toBe("managed/model")
-    expect(config.share).toBe("disabled")
+    expect(config.default_agent).toBe("managed-agent")
     expect(config.username).toBe("testuser")
   }),
-  { config: { model: "user/model", share: "auto", username: "testuser" } },
+  { config: { model: "user/model", default_agent: "user-agent", username: "testuser" } },
 )
 
 it.instance(
@@ -1204,15 +1191,15 @@ it.instance(
   Effect.gen(function* () {
     yield* writeManagedSettingsEffect({
       $schema: "https://opencode.ai/config.json",
-      autoupdate: false,
+      snapshot: false,
       disabled_providers: ["openai"],
     })
 
     const config = yield* Config.use.get()
-    expect(config.autoupdate).toBe(false)
+    expect(config.snapshot).toBe(false)
     expect(config.disabled_providers).toEqual(["openai"])
   }),
-  { config: { autoupdate: true, disabled_providers: [] } },
+  { config: { snapshot: true, disabled_providers: [] } },
 )
 
 it.instance("managed jsonc settings override managed json settings", () =>
@@ -1956,7 +1943,7 @@ test("parseManagedPlist strips MDM metadata keys", async () => {
           PayloadUUID: "AAAA-BBBB-CCCC",
           PayloadVersion: 1,
           _manualProfile: true,
-          share: "disabled",
+          default_agent: "mdm-agent",
           model: "mdm/model",
         }),
       ),
@@ -1964,7 +1951,7 @@ test("parseManagedPlist strips MDM metadata keys", async () => {
     ),
     "test:mobileconfig",
   )
-  expect(config.share).toBe("disabled")
+  expect(config.default_agent).toBe("mdm-agent")
   expect(config.model).toBe("mdm/model")
   // MDM keys must not leak into the parsed config
   expect((config as any).PayloadUUID).toBeUndefined()
@@ -1980,7 +1967,7 @@ test("parseManagedPlist parses server settings", async () => {
         JSON.stringify({
           $schema: "https://opencode.ai/config.json",
           server: { hostname: "127.0.0.1", mdns: false },
-          autoupdate: true,
+          snapshot: true,
         }),
       ),
       "test:mobileconfig",
@@ -1989,7 +1976,7 @@ test("parseManagedPlist parses server settings", async () => {
   )
   expect(config.server?.hostname).toBe("127.0.0.1")
   expect(config.server?.mdns).toBe(false)
-  expect(config.autoupdate).toBe(true)
+  expect(config.snapshot).toBe(true)
 })
 
 test("parseManagedPlist parses permission rules", async () => {

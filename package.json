@@ -31,7 +31,6 @@
       "packages/slack"
     ],
     "catalog": {
-      "@effect/opentelemetry": "4.0.0-beta.83",
       "@effect/platform-node": "4.0.0-beta.83",
       "@effect/sql-sqlite-bun": "4.0.0-beta.83",
       "@npmcli/arborist": "9.4.0",
@@ -87,8 +86,6 @@
       "@solidjs/meta": "0.29.4",
       "@solidjs/router": "0.15.4",
       "@solidjs/start": "https://pkg.pr.new/@solidjs/start@dfb2020",
-      "@sentry/solid": "10.36.0",
-      "@sentry/vite-plugin": "4.6.0",
       "solid-js": "1.9.10",
       "vite-plugin-solid": "2.11.10",
       "@lydell/node-pty": "1.2.0-beta.12"

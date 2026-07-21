@@ -327,13 +327,6 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=4096
           OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.WEB_SENTRY_PROJECT }}
-          SENTRY_RELEASE: desktop@${{ needs.version.outputs.version }}
-          VITE_SENTRY_DSN: ${{ vars.WEB_SENTRY_DSN }}
-          VITE_SENTRY_ENVIRONMENT: ${{ (github.ref_name == 'beta' && 'beta') || 'production' }}
-          VITE_SENTRY_RELEASE: desktop@${{ needs.version.outputs.version }}
 
       - name: Package
         if: needs.version.outputs.release
@@ -399,12 +392,6 @@ jobs:
           name: opencode-desktop-${{ matrix.settings.target }}
           path: packages/desktop/dist/*
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: needs.version.outputs.release
-        with:
-          name: latest-yml-${{ matrix.settings.target }}
-          path: packages/desktop/dist/latest*.yml
-
   publish:
     needs:
       - version
@@ -455,12 +442,6 @@ jobs:
         with:
           name: opencode-preview-cli
           path: packages/cli/dist
-
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.version.outputs.release
-        with:
-          pattern: latest-yml-*
-          path: /tmp/latest-yml
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: needs.version.outputs.release
@@ -516,6 +497,3 @@ jobs:
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
           GH_REPO: ${{ needs.version.outputs.repo }}
           NPM_CONFIG_PROVENANCE: false
-          LATEST_YML_DIR: /tmp/latest-yml
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}

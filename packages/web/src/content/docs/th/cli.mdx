@@ -346,7 +346,6 @@ opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 | <nobr><code>{"--continue"}</code></nobr> | `-c` | ดำเนินการต่อจากเซสชันล่าสุด                                                                 |
 | <nobr><code>{"--session"}</code></nobr>  | `-s` | ID เซสชันเพื่อดำเนินการต่อ                                                                  |
 | <nobr><code>{"--fork"}</code></nobr>     |      | แยกเซสชันเมื่อทำต่อ (ใช้กับ `--continue` หรือ `--session`)                                  |
-| <nobr><code>{"--share"}</code></nobr>    |      | สร้างลิงก์แชร์สำหรับเซสชัน                                                                  |
 | <nobr><code>{"--model"}</code></nobr>    | `-m` | โมเดลที่จะใช้ในรูปแบบ provider/model                                                        |
 | <nobr><code>{"--agent"}</code></nobr>    |      | เอเจนต์ที่จะใช้                                                                             |
 | <nobr><code>{"--file"}</code></nobr>     | `-f` | แนบไฟล์ไปกับข้อความ                                                                         |
@@ -441,23 +440,6 @@ opencode export [sessionID]
 
 ---
 
-### import
-
-นำเข้าเซสชันจากไฟล์ JSON หรือ URL ที่แชร์ของ OpenCode
-
-```bash
-opencode import <file>
-```
-
-คุณสามารถนำเข้าไฟล์ในเครื่องหรือ URL ที่แชร์
-
-```bash
-opencode import session.json
-opencode import https://opncd.ai/s/abc123
-```
-
----
-
 ### web
 
 เริ่ม OpenCode ในโหมดเซิร์ฟเวอร์พร้อมเว็บอินเตอร์เฟส
@@ -518,34 +500,6 @@ opencode uninstall
 
 ---
 
-### upgrade
-
-อัปเกรด OpenCode เป็นเวอร์ชันล่าสุดหรือเวอร์ชันที่ระบุ
-
-```bash
-opencode upgrade [target]
-```
-
-อัปเกรดเป็นเวอร์ชันล่าสุด
-
-```bash
-opencode upgrade
-```
-
-อัปเกรดเป็นเวอร์ชันที่ระบุ
-
-```bash
-opencode upgrade v0.1.48
-```
-
-#### แฟล็ก
-
-| แฟล็ก                                  | สั้น | คำอธิบาย                                        |
-| -------------------------------------- | ---- | ----------------------------------------------- |
-| <nobr><code>{"--method"}</code></nobr> | `-m` | วิธีการติดตั้งที่ใช้ curl, npm, pnpm, bun, brew |
-
----
-
 ## แฟล็กระดับโลก
 
 OpenCode CLI ยอมรับแฟล็กสากลต่อไปนี้สำหรับทุกคำสั่ง
@@ -565,13 +519,11 @@ OpenCode สามารถกำหนดค่าโดยใช้ตัว�
 
 | ตัวแปร                                | ชนิด    | คำอธิบาย                                                         |
 | ------------------------------------- | ------- | ---------------------------------------------------------------- |
-| `OPENCODE_AUTO_SHARE`                 | Boolean | แชร์เซสชันอัตโนมัติเมื่อสร้าง                                    |
 | `OPENCODE_GIT_BASH_PATH`              | String  | เส้นทางไปยัง Git Bash บน Windows                                 |
 | `OPENCODE_CONFIG`                     | String  | เส้นทางไปยังไฟล์การกำหนดค่า                                      |
 | `OPENCODE_TUI_CONFIG`                 | String  | เส้นทางไปยังไฟล์การกำหนดค่า TUI                                  |
 | `OPENCODE_CONFIG_DIR`                 | String  | เส้นทางไปยังไดเร็กทอรีการกำหนดค่า                                |
 | `OPENCODE_CONFIG_CONTENT`             | String  | เนื้อหาการกำหนดค่าแบบ inline JSON                                |
-| `OPENCODE_DISABLE_AUTOUPDATE`         | Boolean | ปิดใช้งานการอัปเดตอัตโนมัติ                                      |
 | `OPENCODE_DISABLE_PRUNE`              | Boolean | ปิดใช้งานการลบข้อมูลเซสชันเก่า                                   |
 | `OPENCODE_DISABLE_TERMINAL_TITLE`     | Boolean | ปิดใช้งานการตั้งชื่อหน้าต่าง terminal                            |
 | `OPENCODE_PERMISSION`                 | String  | การกำหนดค่าสิทธิ์แบบ inline JSON                                 |

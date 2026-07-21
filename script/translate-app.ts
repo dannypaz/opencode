@@ -487,7 +487,6 @@ function isolatedEnvironment() {
   delete env.OPENCODE_CONFIG_DIR
   delete env.OPENCODE_CONFIG_CONTENT
   delete env.OPENCODE_PERMISSION
-  delete env.OPENCODE_AUTO_SHARE
   return env
 }
 

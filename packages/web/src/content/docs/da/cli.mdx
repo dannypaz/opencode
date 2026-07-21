@@ -345,7 +345,6 @@ opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 | <nobr><code>{"--continue"}</code></nobr> | `-c` | Fortsæt sidste session                                                              |
 | <nobr><code>{"--session"}</code></nobr>  | `-s` | Sessions-id for at fortsætte                                                        |
 | <nobr><code>{"--fork"}</code></nobr>     |      | Forgren sessionen ved fortsættelse (brug med `--continue` eller `--session`)        |
-| <nobr><code>{"--share"}</code></nobr>    |      | Del sessionen                                                                       |
 | <nobr><code>{"--model"}</code></nobr>    | `-m` | Model til brug i form af provider/model                                             |
 | <nobr><code>{"--agent"}</code></nobr>    |      | Agent til brug                                                                      |
 | <nobr><code>{"--file"}</code></nobr>     | `-f` | Fil(er), der skal vedhæftes til meddelelsen                                         |
@@ -440,23 +439,6 @@ Hvis du ikke angiver et sessions-id, bliver du bedt om at vælge mellem tilgæng
 
 ---
 
-### import
-
-Importer sessionsdata fra en JSON fil eller OpenCode del URL.
-
-```bash
-opencode import <file>
-```
-
-Du kan importere fra en lokal fil eller en OpenCode share URL.
-
-```bash
-opencode import session.json
-opencode import https://opncd.ai/s/abc123
-```
-
----
-
 ### web
 
 Start en hovedløs OpenCode-server med en webgrænseflade.
@@ -517,34 +499,6 @@ opencode uninstall
 
 ---
 
-### upgrade
-
-Opdaterer OpenCode til den nyeste version eller en specifik version.
-
-```bash
-opencode upgrade [target]
-```
-
-For at opgradere til den nyeste version.
-
-```bash
-opencode upgrade
-```
-
-For at opgradere til en bestemt version.
-
-```bash
-opencode upgrade v0.1.48
-```
-
-#### upgrade
-
-| Flag                                   | Kort | Beskrivelse                                                      |
-| -------------------------------------- | ---- | ---------------------------------------------------------------- |
-| <nobr><code>{"--method"}</code></nobr> | `-m` | Installationsmetoden, der blev brugt; curl, npm, pnpm, bun, brew |
-
----
-
 ## Globale flag
 
 opencode CLI tager følgende globale flag.
@@ -564,13 +518,11 @@ OpenCode kan konfigureres ved hjælp af miljøvariabler.
 
 | Variabel                              | Skriv   | Beskrivelse                                                           |
 | ------------------------------------- | ------- | --------------------------------------------------------------------- |
-| `OPENCODE_AUTO_SHARE`                 | boolean | Del automatisk session                                                |
 | `OPENCODE_GIT_BASH_PATH`              | string  | Sti til Git Bash eksekverbar på Windows                               |
 | `OPENCODE_CONFIG`                     | string  | Sti til konfigurationsfil                                             |
 | `OPENCODE_TUI_CONFIG`                 | string  | Sti til TUI-konfigurationsfil                                         |
 | `OPENCODE_CONFIG_DIR`                 | string  | Sti til konfigurationsmappe                                           |
 | `OPENCODE_CONFIG_CONTENT`             | string  | Indbygget json-konfigurationsindhold                                  |
-| `OPENCODE_DISABLE_AUTOUPDATE`         | boolean | Deaktiver automatisk opdateringskontrol                               |
 | `OPENCODE_DISABLE_PRUNE`              | boolean | Deaktiver beskæring af gamle data                                     |
 | `OPENCODE_DISABLE_TERMINAL_TITLE`     | boolean | Deaktiver automatisk opdatering af terminaltitel                      |
 | `OPENCODE_PERMISSION`                 | string  | Indbygget json-tilladelseskonfiguration                               |

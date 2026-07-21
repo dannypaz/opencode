@@ -87,10 +87,6 @@ export const dict = {
   "command.session.compact.description": "Resumir la sesión para reducir el tamaño del contexto",
   "command.session.fork": "Bifurcar desde mensaje",
   "command.session.fork.description": "Crear una nueva sesión desde un mensaje anterior",
-  "command.session.share": "Compartir sesión",
-  "command.session.share.description": "Compartir esta sesión y copiar la URL al portapapeles",
-  "command.session.unshare": "Dejar de compartir sesión",
-  "command.session.unshare.description": "Dejar de compartir esta sesión",
 
   "palette.search.placeholder": "Buscar archivos, comandos y sesiones",
   "palette.search.placeholder.home": "Buscar comandos y sesiones",
@@ -521,22 +517,8 @@ export const dict = {
   "toast.context.noLineSelection.title": "Sin selección de líneas",
   "toast.context.noLineSelection.description": "Primero selecciona un rango de líneas en una pestaña de archivo.",
 
-  "toast.session.share.copyFailed.title": "Fallo al copiar URL al portapapeles",
-  "toast.session.share.success.title": "Sesión compartida",
-  "toast.session.share.success.description": "¡URL compartida copiada al portapapeles!",
-  "toast.session.share.failed.title": "Fallo al compartir sesión",
-  "toast.session.share.failed.description": "Ocurrió un error al compartir la sesión",
-
-  "toast.session.unshare.success.title": "Sesión dejó de compartirse",
-  "toast.session.unshare.success.description": "¡La sesión dejó de compartirse exitosamente!",
-  "toast.session.unshare.failed.title": "Fallo al dejar de compartir sesión",
-  "toast.session.unshare.failed.description": "Ocurrió un error al dejar de compartir la sesión",
-
   "toast.session.listFailed.title": "Fallo al cargar sesiones para {{project}}",
 
-  "toast.update.title": "Actualización disponible",
-  "toast.update.description": "Una nueva versión de OpenCode ({{version}}) está disponible para instalar.",
-  "toast.update.action.installRestart": "Instalar y reiniciar",
   "toast.update.action.notYet": "Todavía no",
 
   "error.page.title": "Algo salió mal",
@@ -547,9 +529,6 @@ export const dict = {
   "error.page.action.report": "Informar error",
   "error.page.action.reported": "Error informado",
   "error.page.action.exportLogs": "Exportar registros",
-  "error.page.action.checking": "Comprobando...",
-  "error.page.action.checkUpdates": "Buscar actualizaciones",
-  "error.page.action.updateTo": "Actualizar a {{version}}",
   "error.page.report.prefix": "Por favor reporta este error al equipo de OpenCode",
   "error.page.report.discord": "en Discord",
   "error.page.version": "Versión: {{version}}",
@@ -695,19 +674,7 @@ export const dict = {
   "status.popover.tab.plugins": "Plugins",
   "status.popover.action.manageServers": "Administrar servidores",
 
-  "session.share.popover.title": "Publicar en web",
-  "session.share.popover.description.shared":
-    "Esta sesión es pública en la web. Es accesible para cualquiera con el enlace.",
-  "session.share.popover.description.unshared":
-    "Compartir sesión públicamente en la web. Será accesible para cualquiera con el enlace.",
-  "session.share.action.share": "Compartir",
-  "session.share.action.publish": "Publicar",
-  "session.share.action.publishing": "Publicando...",
-  "session.share.action.unpublish": "Despublicar",
-  "session.share.action.unpublishing": "Despublicando...",
-  "session.share.action.view": "Ver",
-  "session.share.copy.copied": "Copiado",
-  "session.share.copy.copyLink": "Copiar enlace",
+  "common.copied": "Copiado",
 
   "lsp.tooltip.none": "Sin servidores LSP",
   "lsp.label.connected": "{{count}} LSP",
@@ -837,16 +804,6 @@ export const dict = {
   "settings.general.row.releaseNotes.description":
     'Mostrar ventanas emergentes de "Novedades" después de las actualizaciones',
 
-  "settings.updates.row.startup.title": "Buscar actualizaciones al iniciar",
-  "settings.updates.row.startup.description": "Buscar actualizaciones automáticamente cuando se inicia OpenCode",
-  "settings.updates.row.check.title": "Buscar actualizaciones",
-  "settings.updates.row.check.description": "Buscar actualizaciones manualmente e instalarlas si hay alguna",
-  "settings.updates.action.checkNow": "Buscar ahora",
-  "settings.updates.action.checking": "Buscando...",
-  "settings.updates.action.downloading": "Descargando...",
-  "settings.updates.action.installing": "Instalando...",
-  "settings.updates.toast.latest.title": "Estás al día",
-  "settings.updates.toast.latest.description": "Estás usando la última versión de OpenCode.",
   "sound.option.none": "Ninguno",
   "sound.option.alert01": "Alerta 01",
   "sound.option.alert02": "Alerta 02",

@@ -91,10 +91,6 @@ export const dict = {
   "command.session.compact.description": "Bağlam boyutunu azaltmak için oturumu özetle",
   "command.session.fork": "Mesajdan dallandır",
   "command.session.fork.description": "Önceki bir mesajdan yeni oturum oluştur",
-  "command.session.share": "Oturumu paylaş",
-  "command.session.share.description": "Bu oturumu paylaş ve URL'yi panoya kopyala",
-  "command.session.unshare": "Paylaşımı kaldır",
-  "command.session.unshare.description": "Bu oturumun paylaşımını durdur",
 
   "palette.search.placeholder": "Dosya, komut ve oturum ara",
   "palette.search.placeholder.home": "Komut ve oturum ara",
@@ -524,22 +520,8 @@ export const dict = {
   "toast.context.noLineSelection.title": "Satır seçimi yok",
   "toast.context.noLineSelection.description": "Önce bir dosya sekmesinde satır aralığı seçin.",
 
-  "toast.session.share.copyFailed.title": "URL panoya kopyalanamadı",
-  "toast.session.share.success.title": "Oturum paylaşıldı",
-  "toast.session.share.success.description": "Paylaşım URL'si panoya kopyalandı!",
-  "toast.session.share.failed.title": "Oturum paylaşılamadı",
-  "toast.session.share.failed.description": "Oturum paylaşılırken bir hata oluştu",
-
-  "toast.session.unshare.success.title": "Oturum paylaşımı kaldırıldı",
-  "toast.session.unshare.success.description": "Oturum paylaşımı başarıyla kaldırıldı!",
-  "toast.session.unshare.failed.title": "Oturum paylaşımı kaldırılamadı",
-  "toast.session.unshare.failed.description": "Oturum paylaşımı kaldırılırken bir hata oluştu",
-
   "toast.session.listFailed.title": "{{project}} için oturumlar yüklenemedi",
 
-  "toast.update.title": "Güncelleme mevcut",
-  "toast.update.description": "OpenCode'un yeni bir sürümü ({{version}}) yüklemeye hazır.",
-  "toast.update.action.installRestart": "Yükle ve yeniden başlat",
   "toast.update.action.notYet": "Şimdi değil",
 
   "error.page.title": "Bir şeyler yanlış gitti",
@@ -550,9 +532,6 @@ export const dict = {
   "error.page.action.report": "Hatayı Bildir",
   "error.page.action.reported": "Hata Bildirildi",
   "error.page.action.exportLogs": "Günlükleri Dışa Aktar",
-  "error.page.action.checking": "Kontrol ediliyor...",
-  "error.page.action.checkUpdates": "Güncellemeleri kontrol et",
-  "error.page.action.updateTo": "{{version}} sürümüne güncelle",
   "error.page.report.prefix": "Lütfen bu hatayı OpenCode ekibine bildirin",
   "error.page.report.discord": "Discord üzerinden",
   "error.page.version": "Sürüm: {{version}}",
@@ -698,18 +677,7 @@ export const dict = {
   "status.popover.tab.plugins": "Eklentiler",
   "status.popover.action.manageServers": "Sunucuları yönet",
 
-  "session.share.popover.title": "Web'de yayınla",
-  "session.share.popover.description.shared": "Bu oturum web'de herkese açıktır. Bağlantıya sahip herkes erişebilir.",
-  "session.share.popover.description.unshared":
-    "Oturumu web'de herkese açık olarak paylaşın. Bağlantıya sahip herkes erişebilecek.",
-  "session.share.action.share": "Paylaş",
-  "session.share.action.publish": "Yayınla",
-  "session.share.action.publishing": "Yayınlanıyor...",
-  "session.share.action.unpublish": "Yayından kaldır",
-  "session.share.action.unpublishing": "Yayından kaldırılıyor...",
-  "session.share.action.view": "Görüntüle",
-  "session.share.copy.copied": "Kopyalandı",
-  "session.share.copy.copyLink": "Bağlantı kopyala",
+  "common.copied": "Kopyalandı",
 
   "lsp.tooltip.none": "LSP sunucusu yok",
   "lsp.label.connected": "{{count}} LSP",
@@ -837,17 +805,6 @@ export const dict = {
 
   "settings.general.row.releaseNotes.title": "Sürüm notları",
   "settings.general.row.releaseNotes.description": "Güncellemelerden sonra Yenilikler bildirimlerini göster",
-
-  "settings.updates.row.startup.title": "Başlangıçta güncellemeleri kontrol et",
-  "settings.updates.row.startup.description": "OpenCode başladığında otomatik güncelleme kontrolü yap",
-  "settings.updates.row.check.title": "Güncellemeleri kontrol et",
-  "settings.updates.row.check.description": "Elle güncelleme kontrolü yap ve varsa yükle",
-  "settings.updates.action.checkNow": "Şimdi kontrol et",
-  "settings.updates.action.checking": "Kontrol ediliyor...",
-  "settings.updates.action.downloading": "İndiriliyor...",
-  "settings.updates.action.installing": "Kuruluyor...",
-  "settings.updates.toast.latest.title": "Güncelsiniz",
-  "settings.updates.toast.latest.description": "OpenCode'un en son sürümünü kullanıyorsunuz.",
 
   "sound.option.none": "Yok",
   "sound.option.alert01": "Uyarı 01",

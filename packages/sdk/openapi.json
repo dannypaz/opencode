@@ -21514,9 +21514,6 @@
               "batch_tool": {
                 "type": "boolean"
               },
-              "openTelemetry": {
-                "type": "boolean"
-              },
               "primary_tools": {
                 "type": "array",
                 "items": {

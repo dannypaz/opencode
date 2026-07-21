@@ -1,30 +1,24 @@
 import { describe, expect, beforeAll, beforeEach, afterAll } from "bun:test"
-import { Effect, Layer, Ref } from "effect"
-import { HttpClient, HttpClientResponse } from "effect/unstable/http"
+import { Chunk, Effect, Fiber, Stream } from "effect"
 import { AppNodeBuilder } from "@opencode-ai/core/effect/app-node-builder"
-import { LayerNodePlatform } from "@opencode-ai/core/effect/app-node-platform"
-import { LayerNode } from "@opencode-ai/core/effect/layer-node"
+import { EventV2 } from "@opencode-ai/core/event"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { Global } from "@opencode-ai/core/global"
 import { ModelsDev } from "@opencode-ai/core/models-dev"
 import { it } from "./lib/effect"
-import { readFile, rm, writeFile, utimes, mkdir } from "fs/promises"
+import { rm, writeFile, mkdir } from "fs/promises"
 import path from "path"
 
 // test/preload.ts pins OPENCODE_MODELS_PATH to a fixture so other tests can
-// resolve providers without network. These tests need to drive the on-disk
-// cache themselves and silence the eager refresh fork. Save/restore around
-// the suite — never leak the mutation to subsequent test files in the same
-// bun process.
+// resolve providers without touching disk/network. These tests need to drive
+// the on-disk cache themselves. Save/restore around the suite — never leak
+// the mutation to subsequent test files in the same bun process.
 const ORIGINAL_MODELS_PATH = Flag.OPENCODE_MODELS_PATH
-const ORIGINAL_DISABLE_FETCH = Flag.OPENCODE_DISABLE_MODELS_FETCH
 beforeAll(() => {
   Flag.OPENCODE_MODELS_PATH = undefined
-  Flag.OPENCODE_DISABLE_MODELS_FETCH = true
 })
 afterAll(() => {
   Flag.OPENCODE_MODELS_PATH = ORIGINAL_MODELS_PATH
-  Flag.OPENCODE_DISABLE_MODELS_FETCH = ORIGINAL_DISABLE_FETCH
 })
 
 const cacheFile = path.join(Global.Path.cache, "models.json")
@@ -69,48 +63,20 @@ const fixture2: Record<string, ModelsDev.Provider> = {
   },
 }
 
-interface MockState {
-  body: string
-  status: number
-  calls: Array<{ url: string; userAgent: string | null }>
-}
-
-const makeMockClient = (state: Ref.Ref<MockState>) =>
-  HttpClient.make((request) =>
-    Effect.gen(function* () {
-      yield* Ref.update(state, (s) => ({
-        ...s,
-        calls: [...s.calls, { url: request.url, userAgent: request.headers["user-agent"] ?? null }],
-      }))
-      const s = yield* Ref.get(state)
-      return HttpClientResponse.fromWeb(request, new Response(s.body, { status: s.status }))
-    }),
-  )
-
-const buildLayer = (state: Ref.Ref<MockState>) =>
-  // Layer.fresh is required because the ModelsDev implementation is a module-level Layer constant,
-  // and Effect.provide uses a process-global MemoMap by default — without fresh,
-  // every test would reuse the cachedInvalidateWithTTL state from the first run.
-  Layer.fresh(
-    AppNodeBuilder.build(ModelsDev.node, [
-      [LayerNodePlatform.httpClient, Layer.succeed(HttpClient.HttpClient, makeMockClient(state))],
-    ]),
-  )
-
-const writeCacheText = (text: string, mtimeMs?: number) =>
+const writeCacheText = (text: string) =>
   Effect.promise(async () => {
     await mkdir(Global.Path.cache, { recursive: true })
     await writeFile(cacheFile, text)
-    if (mtimeMs !== undefined) {
-      const t = mtimeMs / 1000
-      await utimes(cacheFile, t, t)
-    }
   })
 
-const writeCache = (data: object, mtimeMs?: number) => writeCacheText(JSON.stringify(data), mtimeMs)
+const writeCache = (data: object) => writeCacheText(JSON.stringify(data))
 
-const provided = <A, E>(state: Ref.Ref<MockState>, eff: Effect.Effect<A, E, ModelsDev.Service>) =>
-  eff.pipe(Effect.provide(buildLayer(state)))
+// Layer.fresh (via AppNodeBuilder.build -> LayerNode.compile) is required because the
+// ModelsDev implementation is a module-level Layer constant, and Effect.provide uses a
+// process-global MemoMap by default — without fresh, every test would reuse the
+// cachedInvalidateWithTTL state from the first run.
+const provided = <A, E>(eff: Effect.Effect<A, E, ModelsDev.Service>) =>
+  eff.pipe(Effect.provide(AppNodeBuilder.build(ModelsDev.node)))
 
 beforeEach(async () => {
   await rm(cacheFile, { force: true })
@@ -120,68 +86,40 @@ afterAll(async () => {
   await rm(cacheFile, { force: true })
 })
 
-const initialState: MockState = {
-  body: JSON.stringify(fixture),
-  status: 200,
-  calls: [],
-}
-
 describe("ModelsDev Service", () => {
   it.live("get() returns providers from disk when cache file exists", () =>
     Effect.gen(function* () {
       yield* writeCache(fixture)
-      const state = yield* Ref.make(initialState)
-      const result = yield* provided(
-        state,
-        ModelsDev.Service.use((s) => s.get()),
-      )
+      const result = yield* provided(ModelsDev.Service.use((s) => s.get()))
       expect(result).toEqual(fixture)
-      const final = yield* Ref.get(state)
-      expect(final.calls).toEqual([])
     }),
   )
 
-  it.live("get() returns empty catalog when disk empty, fetch disabled, and no bundled snapshot is injected", () =>
+  it.live("get() returns empty catalog when neither disk cache nor bundled snapshot is present", () =>
     Effect.gen(function* () {
-      const state = yield* Ref.make(initialState)
-      const result = yield* provided(
-        state,
-        ModelsDev.Service.use((s) => s.get()),
-      )
+      const result = yield* provided(ModelsDev.Service.use((s) => s.get()))
       expect(result).toEqual({})
-      const final = yield* Ref.get(state)
-      expect(final.calls).toEqual([])
     }),
   )
 
-  it.live("get() recovers from a corrupted cache file by fetching a fresh catalog", () =>
+  it.live("get() falls back to the build-time-embedded snapshot when no disk cache exists", () =>
     Effect.gen(function* () {
-      yield* writeCacheText("{")
-      const state = yield* Ref.make({ ...initialState, body: JSON.stringify(fixture2) })
-      const context = yield* Layer.build(buildLayer(state))
-      const result = yield* Effect.acquireUseRelease(
-        Effect.sync(() => {
-          Flag.OPENCODE_DISABLE_MODELS_FETCH = false
-        }),
-        () => ModelsDev.Service.use((s) => s.get()).pipe(Effect.provide(context)),
-        () =>
-          Effect.sync(() => {
-            Flag.OPENCODE_DISABLE_MODELS_FETCH = true
-          }),
+      // OPENCODE_MODELS_DEV is normally substituted at build time via an esbuild `define`
+      // (see packages/opencode/script/build.ts / build-node.ts). Under bun test there's no
+      // build step, so we simulate it by stubbing the global the module's `typeof` check reads.
+      const globalWithSnapshot = globalThis as { OPENCODE_MODELS_DEV?: Record<string, ModelsDev.Provider> }
+      globalWithSnapshot.OPENCODE_MODELS_DEV = fixture2
+      const result = yield* provided(ModelsDev.Service.use((s) => s.get())).pipe(
+        Effect.ensuring(Effect.sync(() => delete globalWithSnapshot.OPENCODE_MODELS_DEV)),
       )
       expect(result).toEqual(fixture2)
-      expect(yield* Effect.promise(() => readFile(cacheFile, "utf8"))).toBe(JSON.stringify(fixture2))
-      const final = yield* Ref.get(state)
-      expect(final.calls.length).toBe(1)
     }),
   )
 
   it.live("get() is single-flight under concurrent calls", () =>
     Effect.gen(function* () {
       yield* writeCache(fixture)
-      const state = yield* Ref.make(initialState)
       const results = yield* provided(
-        state,
         Effect.gen(function* () {
           const svc = yield* ModelsDev.Service
           return yield* Effect.all([svc.get(), svc.get(), svc.get(), svc.get(), svc.get()], {
@@ -196,9 +134,7 @@ describe("ModelsDev Service", () => {
   it.live("get() caches across calls (later disk writes are ignored until invalidate)", () =>
     Effect.gen(function* () {
       yield* writeCache(fixture)
-      const state = yield* Ref.make(initialState)
       const first = yield* provided(
-        state,
         Effect.gen(function* () {
           const svc = yield* ModelsDev.Service
           const a = yield* svc.get()
@@ -213,78 +149,88 @@ describe("ModelsDev Service", () => {
     }),
   )
 
-  it.live("refresh(true) fetches via HttpClient and updates the cache", () =>
+  it.live("refresh(false) re-reads disk and invalidates the cache only when the content changed", () =>
     Effect.gen(function* () {
       yield* writeCache(fixture)
-      const state = yield* Ref.make({ ...initialState, body: JSON.stringify(fixture2) })
       const result = yield* provided(
-        state,
         Effect.gen(function* () {
           const svc = yield* ModelsDev.Service
           const before = yield* svc.get()
+          // refresh with no on-disk change: cache should remain untouched
+          yield* svc.refresh(false)
+          const stillCached = yield* svc.get()
+          // now actually change the disk contents and refresh again
+          yield* writeCache(fixture2)
+          yield* svc.refresh(false)
+          const after = yield* svc.get()
+          return { before, stillCached, after }
+        }),
+      )
+      expect(result.before).toEqual(fixture)
+      expect(result.stillCached).toEqual(fixture)
+      expect(result.after).toEqual(fixture2)
+    }),
+  )
+
+  it.live("refresh(true) always invalidates the cache, even when local content is unchanged", () =>
+    Effect.gen(function* () {
+      yield* writeCache(fixture)
+      const result = yield* provided(
+        Effect.gen(function* () {
+          const svc = yield* ModelsDev.Service
+          const before = yield* svc.get()
+          // no disk change, but force=true should still re-populate the cache
           yield* svc.refresh(true)
           const after = yield* svc.get()
           return { before, after }
         }),
       )
       expect(result.before).toEqual(fixture)
-      expect(result.after).toEqual(fixture2)
-      const final = yield* Ref.get(state)
-      expect(final.calls.length).toBe(1)
-      expect(final.calls[0].url).toContain("/api.json")
-      expect(final.calls[0].userAgent).toContain("/cli")
+      expect(result.after).toEqual(fixture)
     }),
   )
 
-  it.live("refresh(false) skips fetch when on-disk file is fresh", () =>
-    Effect.gen(function* () {
-      // Fresh: mtime within the 5-minute TTL.
-      yield* writeCache(fixture, Date.now() - 1000)
-      const state = yield* Ref.make({ ...initialState, body: JSON.stringify(fixture2) })
-      yield* provided(
-        state,
-        ModelsDev.Service.use((s) => s.refresh(false)),
-      )
-      const final = yield* Ref.get(state)
-      expect(final.calls).toEqual([])
-    }),
-  )
-
-  it.live("refresh(false) fetches when on-disk file is stale", () =>
-    Effect.gen(function* () {
-      // Stale: mtime 10 minutes ago, beyond the 5-minute TTL.
-      yield* writeCache(fixture, Date.now() - 10 * 60 * 1000)
-      const state = yield* Ref.make({ ...initialState, body: JSON.stringify(fixture2) })
-      const after = yield* provided(
-        state,
-        Effect.gen(function* () {
-          const svc = yield* ModelsDev.Service
-          yield* svc.refresh(false)
-          return yield* svc.get()
-        }),
-      )
-      const final = yield* Ref.get(state)
-      expect(final.calls.length).toBe(1)
-      expect(after).toEqual(fixture2)
-    }),
-  )
-
-  it.live("refresh swallows HTTP errors and leaves cache intact", () =>
+  it.live("refresh() publishes Event.Refreshed when local content changes", () =>
     Effect.gen(function* () {
       yield* writeCache(fixture)
-      const state = yield* Ref.make({ ...initialState, status: 500, body: "boom" })
-      const result = yield* provided(
-        state,
+      const received = yield* provided(
         Effect.gen(function* () {
           const svc = yield* ModelsDev.Service
-          yield* svc.refresh(true)
-          return yield* svc.get()
+          const events = yield* EventV2.Service
+          yield* svc.get()
+          const fiber = yield* events
+            .subscribe(ModelsDev.Event.Refreshed)
+            .pipe(Stream.take(1), Stream.runCollect, Effect.forkScoped)
+          yield* Effect.yieldNow
+          yield* writeCache(fixture2)
+          yield* svc.refresh(false)
+          return yield* Fiber.join(fiber)
         }),
       )
-      expect(result).toEqual(fixture)
-      // retryTransient retries 5xx, so calls may be > 1.
-      const final = yield* Ref.get(state)
-      expect(final.calls.length).toBeGreaterThanOrEqual(1)
+      expect(Chunk.size(received)).toBe(1)
+    }),
+  )
+
+  it.live("refresh() does not publish Event.Refreshed when local content is unchanged", () =>
+    Effect.gen(function* () {
+      yield* writeCache(fixture)
+      const received = yield* provided(
+        Effect.gen(function* () {
+          const svc = yield* ModelsDev.Service
+          const events = yield* EventV2.Service
+          yield* svc.get()
+          const fiber = yield* events
+            .subscribe(ModelsDev.Event.Refreshed)
+            .pipe(Stream.take(1), Stream.runCollect, Effect.forkScoped)
+          yield* Effect.yieldNow
+          yield* svc.refresh(false)
+          // give the subscriber a beat, then confirm nothing arrived
+          yield* Effect.sleep("20 millis")
+          const status = yield* Fiber.poll(fiber)
+          return status
+        }),
+      )
+      expect(received._tag).toBe("None")
     }),
   )
 })

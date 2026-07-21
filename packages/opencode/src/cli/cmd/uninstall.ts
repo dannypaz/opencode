@@ -1,7 +1,6 @@
 import type { Argv } from "yargs"
 import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
-import { Installation } from "../../installation"
 import { Global } from "@opencode-ai/core/global"
 import fs from "fs/promises"
 import path from "path"
@@ -20,6 +19,49 @@ interface RemovalTargets {
   directories: Array<{ path: string; label: string; keep: boolean }>
   shellConfig: string | null
   binary: string | null
+}
+
+export type InstallMethod = "curl" | "npm" | "yarn" | "pnpm" | "bun" | "brew" | "scoop" | "choco" | "unknown"
+
+// Detects how opencode was installed by checking the running binary's path and,
+// failing that, asking each locally-installed package manager whether it knows
+// about the package. Everything here runs local commands only — no network
+// calls — since this is purely used to figure out how to remove local files.
+async function detectInstallMethod(): Promise<InstallMethod> {
+  if (process.execPath.includes(path.join(".opencode", "bin"))) return "curl"
+  if (process.execPath.includes(path.join(".local", "bin"))) return "curl"
+  const exec = process.execPath.toLowerCase()
+
+  const checks: Array<{ name: InstallMethod; command: string[] }> = [
+    { name: "npm", command: ["npm", "list", "-g", "--depth=0"] },
+    { name: "yarn", command: ["yarn", "global", "list"] },
+    { name: "pnpm", command: ["pnpm", "list", "-g", "--depth=0"] },
+    { name: "bun", command: ["bun", "pm", "ls", "-g"] },
+    { name: "brew", command: ["brew", "list", "--formula", "opencode"] },
+    { name: "scoop", command: ["scoop", "list", "opencode"] },
+    { name: "choco", command: ["choco", "list", "--limit-output", "opencode"] },
+  ]
+
+  checks.sort((a, b) => {
+    const aMatches = exec.includes(a.name)
+    const bMatches = exec.includes(b.name)
+    if (aMatches && !bMatches) return -1
+    if (!aMatches && bMatches) return 1
+    return 0
+  })
+
+  for (const check of checks) {
+    const output = await Process.run(check.command, { nothrow: true })
+      .then((result) => result.stdout.toString("utf8"))
+      .catch(() => "")
+    const installedName =
+      check.name === "brew" || check.name === "choco" || check.name === "scoop" ? "opencode" : "opencode-ai"
+    if (output.includes(installedName)) {
+      return check.name
+    }
+  }
+
+  return "unknown"
 }
 
 export const UninstallCommand = {
@@ -57,7 +99,7 @@ export const UninstallCommand = {
     UI.empty()
     prompts.intro("Uninstall OpenCode")
 
-    const method = await Installation.method()
+    const method = await detectInstallMethod()
     prompts.log.info(`Installation method: ${method}`)
 
     const targets = await collectRemovalTargets(args, method)
@@ -87,7 +129,7 @@ export const UninstallCommand = {
   },
 }
 
-async function collectRemovalTargets(args: UninstallArgs, method: Installation.Method): Promise<RemovalTargets> {
+async function collectRemovalTargets(args: UninstallArgs, method: InstallMethod): Promise<RemovalTargets> {
   const directories: RemovalTargets["directories"] = [
     { path: Global.Path.data, label: "Data", keep: args.keepData },
     { path: Global.Path.cache, label: "Cache", keep: false },
@@ -101,7 +143,7 @@ async function collectRemovalTargets(args: UninstallArgs, method: Installation.M
   return { directories, shellConfig, binary }
 }
 
-async function showRemovalSummary(targets: RemovalTargets, method: Installation.Method) {
+async function showRemovalSummary(targets: RemovalTargets, method: InstallMethod) {
   prompts.log.message("The following will be removed:")
 
   for (const dir of targets.directories) {
@@ -141,7 +183,7 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
   }
 }
 
-async function executeUninstall(method: Installation.Method, targets: RemovalTargets) {
+async function executeUninstall(method: InstallMethod, targets: RemovalTargets) {
   const spinner = prompts.spinner()
   const errors: string[] = []
 

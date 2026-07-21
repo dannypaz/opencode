@@ -129,10 +129,8 @@ describe("ModelsDevPlugin", () => {
       Effect.sync(() => {
         const previous = {
           path: Flag.OPENCODE_MODELS_PATH,
-          disabled: Flag.OPENCODE_DISABLE_MODELS_FETCH,
         }
         Flag.OPENCODE_MODELS_PATH = path.join(import.meta.dir, "fixtures", "models-dev.json")
-        Flag.OPENCODE_DISABLE_MODELS_FETCH = true
         return previous
       }),
       () =>
@@ -163,7 +161,6 @@ describe("ModelsDevPlugin", () => {
       (previous) =>
         Effect.sync(() => {
           Flag.OPENCODE_MODELS_PATH = previous.path
-          Flag.OPENCODE_DISABLE_MODELS_FETCH = previous.disabled
         }),
     ),
   )

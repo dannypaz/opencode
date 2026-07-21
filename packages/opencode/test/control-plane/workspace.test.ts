@@ -35,9 +35,6 @@ import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 const originalEnv = {
   OPENCODE_AUTH_CONTENT: process.env.OPENCODE_AUTH_CONTENT,
   OPENCODE_EXPERIMENTAL_WORKSPACES: process.env.OPENCODE_EXPERIMENTAL_WORKSPACES,
-  OTEL_EXPORTER_OTLP_HEADERS: process.env.OTEL_EXPORTER_OTLP_HEADERS,
-  OTEL_EXPORTER_OTLP_ENDPOINT: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
-  OTEL_RESOURCE_ATTRIBUTES: process.env.OTEL_RESOURCE_ATTRIBUTES,
 }
 
 const workspaceLayer = (experimentalWorkspaces: boolean) =>
@@ -424,9 +421,6 @@ describe("workspace CRUD", () => {
         const instance = yield* requireInstance
         const workspace = yield* Workspace.Service
         process.env.OPENCODE_AUTH_CONTENT = JSON.stringify({ test: { type: "api", key: "secret" } })
-        process.env.OTEL_EXPORTER_OTLP_HEADERS = "authorization=otel"
-        process.env.OTEL_EXPORTER_OTLP_ENDPOINT = "https://otel.test"
-        process.env.OTEL_RESOURCE_ATTRIBUTES = "service.name=opencode-test"
 
         const workspaceID = WorkspaceV2.ID.ascending("wrk_create_local")
         const type = unique("create-local")
@@ -487,9 +481,6 @@ describe("workspace CRUD", () => {
         })
         expect(recorded.calls.create[0].env.OPENCODE_WORKSPACE_ID).toBe(workspaceID)
         expect(recorded.calls.create[0].env.OPENCODE_EXPERIMENTAL_WORKSPACES).toBe("true")
-        expect(recorded.calls.create[0].env.OTEL_EXPORTER_OTLP_HEADERS).toBe("authorization=otel")
-        expect(recorded.calls.create[0].env.OTEL_EXPORTER_OTLP_ENDPOINT).toBe("https://otel.test")
-        expect(recorded.calls.create[0].env.OTEL_RESOURCE_ATTRIBUTES).toBe("service.name=opencode-test")
         expect((yield* workspace.status()).find((item) => item.workspaceID === workspaceID)?.status).toBe("connected")
 
         yield* workspace.remove(workspaceID)
