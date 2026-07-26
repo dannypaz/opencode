@@ -28,6 +28,7 @@ import { tabKey, useTabs } from "@/context/tabs"
 import type { PromptSession } from "@/context/prompt"
 import "./titlebar.css"
 import { newTabTooltipKeybind } from "./command-tooltip-keybind"
+import { normalizeSessionInfo } from "@/utils/session"
 
 type TauriDesktopWindow = {
   startDragging?: () => Promise<void>
@@ -246,9 +247,9 @@ export function Titlebar(props: { debugTools?: { visible: boolean; toggle: () =>
                 return conn ? { route, sdk: global.ensureServerCtx(conn).sdk } : undefined
               },
               ({ route, sdk }) =>
-                sdk.client.session
+                sdk.api.session
                   .get({ sessionID: route.sessionId })
-                  .then((x) => x.data)
+                  .then(normalizeSessionInfo)
                   .catch(() => {}),
             )
 
