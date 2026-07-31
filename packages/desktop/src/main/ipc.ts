@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process"
 import { stat } from "node:fs/promises"
 import { basename } from "node:path"
-import { BrowserWindow, Notification, clipboard, dialog, ipcMain, shell } from "electron"
+import { BrowserWindow, clipboard, dialog, ipcMain, shell } from "electron"
 import type { IpcMainEvent, IpcMainInvokeEvent } from "electron"
 import type { DesktopMenuAction } from "@opencode-ai/app/desktop-menu"
 
@@ -10,7 +10,15 @@ import { runDesktopMenuAction } from "./desktop-menu-actions"
 import { setForceFocus } from "./debug"
 import { assertAttachmentBudget, createPickedFileAuthorizations } from "./attachment-picker"
 import { getStore, removeStoreFileIfEmpty } from "./store"
-import { getPinchZoomEnabled, getWindowID, setPinchZoomEnabled, setTitlebar, updateTitlebar } from "./windows"
+import {
+  getPinchZoomEnabled,
+  getWindowID,
+  openExternalURL,
+  openLocalFileURL,
+  setPinchZoomEnabled,
+  setTitlebar,
+  updateTitlebar,
+} from "./windows"
 
 const pickerFilters = (ext?: string[]) => {
   if (!ext || ext.length === 0) return undefined
@@ -31,7 +39,6 @@ type Deps = {
   isOldLayoutEligible: () => Promise<boolean> | boolean
   getDisplayBackend: () => Promise<string | null>
   setDisplayBackend: (backend: string | null) => Promise<void> | void
-  parseMarkdown: (markdown: string) => Promise<string> | string
   checkAppExists: (appName: string) => Promise<boolean> | boolean
   resolveAppPath: (appName: string) => Promise<string | null>
   setBackgroundColor: (color: string) => void
@@ -56,7 +63,6 @@ export function registerIpcHandlers(deps: Deps) {
   ipcMain.handle("set-display-backend", (_event: IpcMainInvokeEvent, backend: string | null) =>
     deps.setDisplayBackend(backend),
   )
-  ipcMain.handle("parse-markdown", (_event: IpcMainInvokeEvent, markdown: string) => deps.parseMarkdown(markdown))
   ipcMain.handle("check-app-exists", (_event: IpcMainInvokeEvent, appName: string) => deps.checkAppExists(appName))
   ipcMain.handle("resolve-app-path", (_event: IpcMainInvokeEvent, appName: string) => deps.resolveAppPath(appName))
   ipcMain.handle("set-background-color", (_event: IpcMainInvokeEvent, color: string) => deps.setBackgroundColor(color))
@@ -156,8 +162,12 @@ export function registerIpcHandlers(deps: Deps) {
     },
   )
 
-  ipcMain.on("open-link", (_event: IpcMainEvent, url: string) => {
-    void shell.openExternal(url)
+  ipcMain.on("open-external", (_event: IpcMainEvent, url: string) => {
+    openExternalURL(url)
+  })
+
+  ipcMain.on("open-local-file", (_event: IpcMainEvent, url: string) => {
+    openLocalFileURL(url)
   })
 
   ipcMain.handle("open-path", async (_event: IpcMainInvokeEvent, path: string, app?: string) => {
@@ -187,12 +197,6 @@ export function registerIpcHandlers(deps: Deps) {
     return { buffer, width: size.width, height: size.height }
   })
 
-  ipcMain.on("show-notification", (_event: IpcMainEvent, title: string, body?: string) => {
-    new Notification({ title, body }).show()
-  })
-
-  ipcMain.handle("get-window-count", () => BrowserWindow.getAllWindows().length)
-
   ipcMain.handle("get-window-id", (event: IpcMainInvokeEvent) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     if (!win) throw new Error("Window not found")
@@ -204,6 +208,11 @@ export function registerIpcHandlers(deps: Deps) {
   ipcMain.handle("get-window-focused", (event: IpcMainInvokeEvent) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     return win?.isFocused() ?? false
+  })
+
+  ipcMain.handle("get-window-fullscreen", (event: IpcMainInvokeEvent) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    return win?.isFullScreen() ?? false
   })
 
   ipcMain.handle("set-window-focus", (event: IpcMainInvokeEvent) => {

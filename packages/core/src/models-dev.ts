@@ -11,6 +11,11 @@ import { makeGlobalNode } from "./effect/app-node"
 export const CatalogModelStatus = Schema.Literals(["alpha", "beta", "deprecated"])
 export type CatalogModelStatus = typeof CatalogModelStatus.Type
 
+const InterleavedField = Schema.Union([
+  Schema.Literals(["reasoning", "reasoning_content", "reasoning_text"]),
+  Schema.String,
+])
+
 const CostTier = Schema.Struct({
   input: Schema.Finite,
   output: Schema.Finite,
@@ -65,9 +70,10 @@ export const Model = Schema.Struct({
   reasoning_options: Schema.optional(Schema.Array(ReasoningOption)),
   interleaved: Schema.optional(
     Schema.Union([
-      Schema.Literal(true),
+      Schema.Boolean,
+      InterleavedField,
       Schema.Struct({
-        field: Schema.Literals(["reasoning", "reasoning_content", "reasoning_details"]),
+        field: InterleavedField,
       }),
     ]),
   ),
@@ -139,10 +145,10 @@ const layer = Layer.effect(
     // OPENCODE_MODELS_URL no longer names a network source to fetch from, but it still
     // selects which on-disk cache filename to look at, so a custom value keeps resolving
     // to its own cache file instead of colliding with the default models.json.
-    const source = Flag.OPENCODE_MODELS_URL || "https://models.dev"
+    const source = Flag.OPENCODE_MODELS_URL || "https://models.opencode.ai"
     const filepath = path.join(
       Global.Path.cache,
-      source === "https://models.dev" ? "models.json" : `models-${Hash.fast(source)}.json`,
+      source === "https://models.opencode.ai" ? "models.json" : `models-${Hash.fast(source)}.json`,
     )
 
     const loadFromDisk = fs.readJson(Flag.OPENCODE_MODELS_PATH ?? filepath).pipe(
